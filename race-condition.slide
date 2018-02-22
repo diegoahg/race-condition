@@ -68,7 +68,7 @@ Un mutex es una variable especial que puede tener 2 estados, tomado *locked* o l
 * Lo conocemos, lo implementamos !
 .play counter_without_race.go /START OMIT/,/END OMIT/
 
-* Typical Data Races
+* "Data races" más frecuentes
 - Unprotected global variable
 [[https://github.com/douglasmakey/race-condition/blob/master/services.go][services.go]]
 
