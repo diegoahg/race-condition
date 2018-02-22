@@ -1,0 +1,99 @@
+Race Condition
+Meetup Golang Chile
+
+Douglasmakey@gmail.com
+https://github.com/douglasmakey/race_condition
+
+* ¿Yo?
+.image images/me.png 250 250
+Mi nombre es *Douglas* *Mendez* soy de *Venezuela*, actualmente soy *Backend* *Developer* en *Cornershop*, me enamore de *Go* hace un tiempo y cada vez que puedo escribo en el.
+
+* ¿Porque Race Condition?
+.image images/ever.jpeg
+
+* Un poco de conceptos !
+
+- (Wikipedia) Condición de carrera o condición de secuencia (del inglés race condition) es una expresión usada en electrónica y en programación. Cuando la salida o estado de un proceso es dependiente de una secuencia de eventos que se ejecutan en orden arbitrario y van a trabajar sobre un mismo recurso compartido.
+
+
+- Una condición de carrera ocurre cuando *dos* o *más* *procesos* usan el mismo *recurso* sin sincronización. En este caso, el resultado depende del orden en que se ejecutan los procesos
+
+* Una analogia!
+.image images/book.jpeg 250 250
+.image images/run.gif 250 400
+
+* Un Ejemplo, un contador..
+
+.play counter_with_race.go /START OMIT/,/END OMIT/
+
+* Pero se ejecuta !
+
+    go run counter_with_race.go
+    //Output Total: 657800 expected 1.000.000
+
+
+Go posee un *detector* de carrera que está integrado a sus herramientas. Cuando se utiliza la bandera *-race*, el compilador instrumenta todos los accesos a la memoria, con código que registra cuándo y cómo se accedió a la memoria, mientras que la biblioteca de tiempo de ejecución observa los accesos no sincronizados a las variables compartidas. Cuando se detecta un comportamiento erroneo, se imprime una advertencia.
+
+    go run -race counter_with_race.go
+    //OUTPUT:
+    Goroutine 6 (finished) created at:
+      main.main()
+          /Users/douglasmakey/Golang/src/github.com/douglasmakey/race_condition/counter_with_race.go:18 +0xfb
+    ==================
+    Total: 261906 expected 1.000.000
+    Found 1 data race(s)
+    exit status 66
+
+* ¿Entonces que hacemos?
+*Mecanismo* *de* *sincronizacion*, exclusión mutua (comúnmente abreviada como mutex por mutual exclusion) se usa en programación *concurrente* para evitar el ingreso a sus *secciones* *críticas* por más de un proceso a la vez. La sección crítica es el fragmento de código donde puede modificarse un recurso compartido.
+
+    //Seccion Critica
+    myCounter.add()
+
+Existen varias proposiciones para lograr la exclusión mutua:
+- Mutexes.
+- Semáforos.
+- Monitores.
+- Pasaje de Mensajes.
+- Entre otras.
+
+* Mutexes
+Un mutex es una variable especial que puede tener 2 estados, tomado *locked* o libre *unlocked*. Es como una compuerta que permite el acceso controlado. Si un *hilo* tiene el *mutex* entonces se dice que es el *dueño* del *mutex*. Si ningún *hilo* lo tiene se dice que está libre o *unlocked*. Cada *mutex* tiene una cola de *hilos* que están esperando para tomar el *mutex*. El uso de *mutex* es eficiente, pero debería ser usado sólo cuando su acceso es solicitado por *corto* *tiempo*.
+
+    import "sync"
+    var mutex sync.Mutex
+    mutex.Lock() // Para Indicar el inicio del bloqueo a la session critica.
+    mutex.Unlock() // Para indicar el desbloqueo de la session.
+
+* Lo conocemos, lo implementamos !
+.play counter_without_race.go /START OMIT/,/END OMIT/
+
+* Typical Data Races
+- Unprotected global variable
+[[https://github.com/douglasmakey/race-condition/blob/master/services.go][services.go]]
+
+- Primitive unprotected variable
+[[https://github.com/douglasmakey/race-condition/blob/master/counter_atomic.go][counter_atomic.go]]
+
+- Race on loop counter
+[[https://github.com/douglasmakey/race-condition/blob/master/race_on_loop.go][race_on_loop.go]]
+
+- Accidentally shared variable
+[[https://github.com/douglasmakey/race-condition/blob/master/shared_variable.go][shared_variable.go]]
+
+* ¿Para Testing ?
+.code test/example_test.go /START OMIT/,/END OMIT/
+
+        go test example_test.go
+        //OUTPUT:
+        ok      github.com/douglasmakey/race_condition/test     5.008s
+
+El test pasa pero y con el flag -race ?
+
+        go test -race example_test.go
+        //OUTPUT:
+        --- FAIL: TestTimer (5.00s)
+                testing.go:730: race detected during execution of test
+        FAIL
+        FAIL    github.com/douglasmakey/race_condition/test     5.017s
+
