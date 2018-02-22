@@ -7,7 +7,7 @@ import (
 
 // START OMIT
 type counter int64
-func (c *counter) add() { *c++ }
+func (c *counter) increment() { *c++ }
 func (c *counter) value() int64 { return int64(*c) }
 
 func main() {
@@ -19,8 +19,8 @@ func main() {
 			defer wg.Done()
 
 			for i := 0; i < 100; i++ {
-				// Critical section
-				myCounter.add()
+				// Session critica
+				myCounter.increment()
 			}
 		}()
 	}

@@ -8,10 +8,11 @@ import (
 
 var c int64
 
-func add() {
+func increment() {
 	atomic.AddInt64(&c, 1)
 }
 
+// Las carreras de datos también pueden ocurrir en variables de tipos primitivos (bool, int, int64, etc.).
 func value() int64 { return int64(c) }
 
 func main() {
@@ -22,7 +23,7 @@ func main() {
 			defer wg.Done()
 
 			for i := 0; i < 100; i++ {
-				add()
+				increment()
 			}
 		}()
 	}
