@@ -11,7 +11,7 @@ func ParallelWrite(data []byte) chan error {
 	} else {
 		go func() {
 			// Este error se comparte con el goroutine principal,
-			_, err := f1.Write(data)
+			_, err = f1.Write(data)
 			res <- err
 			f1.Close()
 		}()
@@ -21,7 +21,7 @@ func ParallelWrite(data []byte) chan error {
 		res <- err
 	} else {
 		go func() {
-			_, err := f2.Write(data)
+			_, err = f2.Write(data)
 			res <- err
 			f2.Close()
 		}()
